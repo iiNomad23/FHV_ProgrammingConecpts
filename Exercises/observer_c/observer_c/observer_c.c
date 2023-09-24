@@ -62,7 +62,7 @@ void observerSubscribe(listenerFunction func, int arrayIndex, int* arraySize) {
         *arraySize = *arraySize + 1;
     }
     else {
-        printf("Indes already taken - %d", arrayIndex);
+        printf("Array field of Index '%d' already taken", arrayIndex);
     }
 }
 
