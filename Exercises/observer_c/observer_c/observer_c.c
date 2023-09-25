@@ -6,12 +6,12 @@
 
 #include <stdio.h>
 
-#define FUNCTION_STORAGE_MAX 15
+#define FUNCTION_STORAGE_MAX 10
 
 typedef void (*listenerFunction)(const char* msg);
 
-void observerSubscribe(listenerFunction func, int arrayIndex, int* arraySize);
-void publishMessage(const char* msg, int arraySize);
+void observerSubscribe(listenerFunction func, int* highestArrayCnt);
+void publishMessage(const char* msg, int highestArrayCnt);
 
 void subscriber_1(const char* msg);
 void subscriber_2(const char* msg);
@@ -21,13 +21,13 @@ listenerFunction subscriber[FUNCTION_STORAGE_MAX];
 
 int main(int argc, char* argv[]) {
 
-    int arraySize = 0;
+    int highestArrayCnt = 0;
 
-    observerSubscribe(subscriber_1, 0, &arraySize);
-    observerSubscribe(subscriber_2, 1, &arraySize);
-    observerSubscribe(subscriber_3, 2, &arraySize);
+    observerSubscribe(subscriber_1, &highestArrayCnt);
+    observerSubscribe(subscriber_2, &highestArrayCnt);
+    observerSubscribe(subscriber_3, &highestArrayCnt);
 
-    publishMessage("Good Morning!", arraySize);
+    publishMessage("Good Morning!", highestArrayCnt);
 
     return 0;
 }
@@ -44,30 +44,25 @@ void subscriber_3(const char* msg) {
     printf("subscriber_3:\n%s\n\n", msg);
 }
 
-void observerSubscribe(listenerFunction func, int arrayIndex, int* arraySize) {
-    if (arrayIndex < 0) 
+void observerSubscribe(listenerFunction func, int* highestArrayCnt) {
+    for (int i = 0; i < FUNCTION_STORAGE_MAX; i++)
     {
-        printf("Index has to be positive - arrayIndex: %d", arrayIndex);
-        return;
-    }
-    if (arrayIndex >= FUNCTION_STORAGE_MAX)
-    {
-        printf("Index above max storage capacity - arrayIndex: %d", arrayIndex);
-        return;
-    }
+        if (subscriber[i] == NULL)
+        {
+            subscriber[i] = func;
 
-    if (subscriber[arrayIndex] == NULL)
-    {
-        subscriber[arrayIndex] = func;
-        *arraySize = *arraySize + 1;
-    }
-    else {
-        printf("Array field of Index '%d' already taken", arrayIndex);
+            if (*highestArrayCnt <= i)
+            {
+                *highestArrayCnt = i + 1;
+            }
+
+            return;
+        }
     }
 }
 
-void publishMessage(const char* msg, int arraySize) {
-    for (int i = 0; i < arraySize; i++)
+void publishMessage(const char* msg, int highestArrayCnt) {
+    for (int i = 0; i < highestArrayCnt; i++)
     {
         if (subscriber[i] != NULL)
         {
