@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="myAlloc_c.c">
+    <ClCompile Include="myAlloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="myMem.c">

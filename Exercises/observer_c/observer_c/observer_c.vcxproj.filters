@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="observer_c.c">
+    <ClCompile Include="observer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
