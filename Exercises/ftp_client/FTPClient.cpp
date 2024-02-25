@@ -5,7 +5,7 @@
 #include <sstream>
 #include "FTPClient.h"
 
-FTPClient::FTPClient(const std::string& serverIP, int port) {
+FTPClient::FTPClient(const std::string& serverIP, unsigned short port) {
     _dataSocket = INVALID_SOCKET;
     _controlSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -52,9 +52,3 @@ void FTPClient::login(const std::string &userName, const std::string &password) 
     sendCommand(_controlSocket, passCommandStream.str());  // Replace 'your_password' with your actual FTP password
     receiveResponse(_controlSocket);
 }
-
-void FTPClient::logout() {
-
-}
-
-

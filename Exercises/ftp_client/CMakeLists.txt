@@ -21,5 +21,5 @@ add_executable(ftp_client
 # This is useful for keeping dependencies encapsulated within a target.
 target_link_libraries(ftp_client
         PRIVATE -static
-        PUBLIC ws2_32
+        PRIVATE ws2_32
 )

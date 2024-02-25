@@ -8,7 +8,7 @@ int main() {
     }
 
     const std::string serverIP = "127.0.0.1";
-    const int port = 21;
+    const unsigned short port = 21;
 
     FTPClient ftpClient(serverIP, port);
     if (!ftpClient.isConnected()) {

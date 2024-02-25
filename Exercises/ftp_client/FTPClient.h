@@ -17,13 +17,12 @@ private:
     SOCKET _dataSocket;
 
 public:
-    FTPClient(const std::string& serverIP, int port);
+    FTPClient(const std::string& serverIP, unsigned short port);
     ~FTPClient();
 
     [[nodiscard]] bool isConnected() const;
 
     void login(const std::string& userName, const std::string& password) const;
-    void logout();
 
     static std::string receiveResponse(SOCKET sock) {
         char buffer[1024] = {};
