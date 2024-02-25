@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  ftp_server:
+    image: garethflowers/ftp-server
+    container_name: test-ftp-server
+    environment:
+      - FTP_PASS=mypass
+      - FTP_USER=testuser
+    ports:
+      - '20-21:20-21/tcp'
+      - '40000-40009:40000-40009/tcp'
+    volumes:
+      - 'C:\\Users\\marco\\Documents\\Temporary:/home/testuser'
+    restart: always
