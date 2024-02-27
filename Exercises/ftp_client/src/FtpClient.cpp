@@ -48,7 +48,9 @@ void FtpClient::login(const std::string &userName, const std::string &password) 
     sendCommand(_controlSocket, userCommandStream.str());
     responseCode = parseResponseCode(receiveResponse(_controlSocket));
     if (responseCode != FtpServerResponseCode::USER_NAME_OKAY_NEED_PASSWORD) {
-        throw ResponseFailureException("Error: command response status" + std::to_string(responseCode));
+        throw ResponseFailureException(
+                "Error: login failed with command response status " + std::to_string(responseCode)
+        );
     }
 
     std::ostringstream passCommandStream;
@@ -56,7 +58,9 @@ void FtpClient::login(const std::string &userName, const std::string &password) 
     sendCommand(_controlSocket, passCommandStream.str());
     responseCode = parseResponseCode(receiveResponse(_controlSocket));
     if (responseCode != FtpServerResponseCode::USER_LOGGED_IN) {
-        throw ResponseFailureException("Error: command response status" + std::to_string(responseCode));
+        throw ResponseFailureException(
+                "Error: login failed with command response status " + std::to_string(responseCode)
+        );
     }
 }
 

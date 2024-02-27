@@ -19,16 +19,22 @@ private:
     std::string _dataIP;
 
 public:
-    FtpClient(const std::string& serverIP, uint16_t port);
+    FtpClient(const std::string &serverIP, uint16_t port);
+
     ~FtpClient();
 
     [[nodiscard]] bool isConnected() const;
-    void login(const std::string& userName, const std::string& password) const;
+
+    void login(const std::string &userName, const std::string &password) const;
 
     [[nodiscard]] int16_t close();
+
     [[nodiscard]] int16_t ls();
+
     [[nodiscard]] int16_t get();
+
     [[nodiscard]] int16_t ascii();
+
     [[nodiscard]] int16_t binary();
 
     static std::string receiveResponse(SOCKET sock) {
@@ -39,11 +45,11 @@ public:
         return response;
     };
 
-    static int16_t parseResponseCode(const std::string& response) {
+    static int16_t parseResponseCode(const std::string &response) {
         try {
             return static_cast<int16_t>(std::stoi(response.substr(0, 3)));
-        } catch (const std::exception& e) {
-            std::cerr << "Error parsing response code: " << e.what() << " :(" << std::endl;
+        } catch (const std::exception &e) {
+            std::cerr << "Error parsing response code: " << e.what() << std::endl;
             return 0;
         }
     }
@@ -56,17 +62,17 @@ public:
         std::cout << "get <filename>: Download a file" << std::endl;
         std::cout << "ascii: Set transfer mode to ASCII" << std::endl;
         std::cout << "binary: Set transfer mode to binary" << std::endl;
-        std::cout << "exit: closes the connection and exits the program" << std::endl;
+        std::cout << "exit: closes the connection and the process" << std::endl;
         std::cout << "---------------------------------------------" << std::endl;
         std::cout << std::endl;
     }
 
-    static void sendCommand(SOCKET sock, const std::string& cmd) {
+    static void sendCommand(SOCKET sock, const std::string &cmd) {
         std::cout << "Sent: " << cmd;
 
         // ensure the command length does not exceed the maximum value for int
         if (cmd.length() > static_cast<std::string::size_type>(std::numeric_limits<int>::max())) {
-            std::cerr << "Command too long to send" << " :(" << std::endl;
+            std::cerr << "Command too long to send" << std::endl;
             return;
         }
 

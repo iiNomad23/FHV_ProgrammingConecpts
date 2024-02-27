@@ -1,3 +1,6 @@
+//
+// Created by marco on 11/02/2024.
+//
 
 #include "includes/FtpClient.h"
 #include "includes/enums/FtpCommand.h"
@@ -10,7 +13,7 @@ void waitForEnter() {
 
 int main() {
     if (FtpSocket::initWinSock() != 0) {
-        std::cerr << "Failed to initialize WinSock :(" << std::endl;
+        std::cerr << "Failed to initialize WinSock" << std::endl;
         waitForEnter();
         return 0;
     }
@@ -25,45 +28,45 @@ int main() {
     }
 
     try {
-        ftpClient.login("testuser", "mypass");
-
+        ftpClient.login("admin", "admin");
         std::cout << "Welcome testuser!" << std::endl;
-        std::string userInput;
-
-        while (true) {
-            FtpClient::displayCommands();
-
-            std::cout << ">>";
-            std::getline(std::cin, userInput);
-
-            FtpCommand command = stringToFtpCommand(userInput);
-            if (command == FtpCommand::EXIT) {
-
-                break;
-            }
-
-            switch (command) {
-                case LS:
-                    // Handle LS command
-                    break;
-                case GET:
-                    // Handle GET command
-                    break;
-                case ASCII:
-                    // Handle ASCII command
-                    break;
-                case BINARY:
-                    // Handle BINARY command
-                    break;
-                default:
-                    std::cout << "Unknown command" << std::endl;
-                    break;
-            }
-        }
     } catch (const std::exception &e) {
-        std::cerr << "Caught an exception: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         waitForEnter();
         return 0;
+    }
+
+    std::string userInput;
+
+    while (true) {
+        FtpClient::displayCommands();
+
+        std::cout << ">>";
+        std::getline(std::cin, userInput);
+
+        FtpCommand command = stringToFtpCommand(userInput);
+        if (command == FtpCommand::EXIT) {
+            // TODO: close
+            break;
+        }
+
+        switch (command) {
+            case LS:
+                // TODO: LS command
+                break;
+            case GET:
+                // TODO: GET command
+                break;
+            case ASCII:
+                // TODO: ASCII command
+                break;
+            case BINARY:
+                // TODO: BINARY command
+                break;
+            default:
+                std::cout << "Unknown command" << std::endl;
+                break;
+        }
     }
 
     return 0;

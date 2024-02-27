@@ -16,7 +16,7 @@ enum FtpCommand {
     UNKNOWN
 };
 
-FtpCommand stringToFtpCommand(const std::string& commandStr) {
+FtpCommand stringToFtpCommand(const std::string &commandStr) {
     if (commandStr == "ls") return LS;
     if (commandStr == "get") return GET;
     if (commandStr == "ascii") return ASCII;

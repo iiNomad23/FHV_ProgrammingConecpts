@@ -16,14 +16,15 @@ private:
 
 public:
     FtpSocket();
+
     ~FtpSocket();
 
     static int initWinSock() {
         WSADATA wsaData;
-        return WSAStartup(MAKEWORD(2,2), &wsaData);
+        return WSAStartup(MAKEWORD(2, 2), &wsaData);
     };
 
-    static int ftpServerConnect(SOCKET _controlSocket, const std::string& serverIP, uint16_t port) {
+    static int ftpServerConnect(SOCKET _controlSocket, const std::string &serverIP, uint16_t port) {
         struct sockaddr_in ftpServer{};
 
         // Set up the FTP server address
