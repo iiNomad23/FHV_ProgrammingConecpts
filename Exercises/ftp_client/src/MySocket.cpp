@@ -2,10 +2,10 @@
 // Created by marco on 25/02/2024.
 //
 
-#include "../includes/MySocket.h"
+#include "../includes/FtpSocket.h"
 
-MySocket::MySocket() = default;
+FtpSocket::FtpSocket() = default;
 
-MySocket::~MySocket() {
+FtpSocket::~FtpSocket() {
     WSACleanup();
 }

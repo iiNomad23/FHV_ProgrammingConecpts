@@ -6,11 +6,13 @@ set(CMAKE_CXX_STANDARD 20)
 # Define the executable target
 add_executable(ftp_client
         main.cpp
+        includes/FtpSocket.h
+        includes/FtpClient.h
+        includes/enums/FtpServerResponseCode.h
+        includes/enums/FtpCommand.h
         src/MySocket.cpp
-        includes/MySocket.h
-        src/FTPClient.cpp
-        includes/FTPClient.h
-        includes/enums/FTPResponseCode.h
+        src/FtpClient.cpp
+        includes/exeptions/ResponseFailureException.h
 )
 
 # Link static libraries to the executable target

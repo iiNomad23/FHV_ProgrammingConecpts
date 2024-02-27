@@ -2,10 +2,10 @@
 // Created by marco on 27/02/2024.
 //
 
-#ifndef FTP_CLIENT_FTPRESPONSECODE_H
-#define FTP_CLIENT_FTPRESPONSECODE_H
+#ifndef FTP_CLIENT_FTPSERVERRESPONSECODE_H
+#define FTP_CLIENT_FTPSERVERRESPONSECODE_H
 
-enum FtpResponseCode : uint16_t {
+enum FtpServerResponseCode : int16_t {
     // Positive Preliminary replies
     SERVICE_READY_IN_NNN_MINUTES = 120,
     DATA_CONNECTION_ALREADY_OPEN = 125,
@@ -53,4 +53,4 @@ enum FtpResponseCode : uint16_t {
     FILE_NAME_NOT_ALLOWED = 553
 };
 
-#endif //FTP_CLIENT_FTPRESPONSECODE_H
+#endif //FTP_CLIENT_FTPSERVERRESPONSECODE_H
