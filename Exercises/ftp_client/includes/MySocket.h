@@ -8,6 +8,7 @@
 #include <string>
 #include <winsock2.h>
 #include <iostream>
+#include <cstdint>
 
 class MySocket {
 private:
@@ -21,7 +22,7 @@ public:
         return WSAStartup(MAKEWORD(2,2), &wsaData);
     };
 
-    static int ftp_server_connect(SOCKET _controlSocket, const std::string& serverIP, unsigned short port) {
+    static int ftp_server_connect(SOCKET _controlSocket, const std::string& serverIP, uint16_t port) {
         struct sockaddr_in ftpServer{};
 
         // Set up the FTP server address

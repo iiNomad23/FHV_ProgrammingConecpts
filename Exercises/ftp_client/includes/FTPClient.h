@@ -15,22 +15,33 @@ private:
     bool _connected;
     SOCKET _controlSocket;
     SOCKET _dataSocket;
+    uint16_t _dataPort;
+    std::string _dataIP;
 
 public:
-    FTPClient(const std::string& serverIP, unsigned short port);
+    FTPClient(const std::string& serverIP, uint16_t port);
     ~FTPClient();
 
     [[nodiscard]] bool isConnected() const;
 
-    void login(const std::string& userName, const std::string& password) const;
+    uint16_t login(const std::string& userName, const std::string& password) const;
 
     static std::string receiveResponse(SOCKET sock) {
         char buffer[1024] = {};
         recv(sock, buffer, sizeof(buffer), 0);
         std::string response(buffer);
-        std::cout << "Received: " << response;
+        std::cout << "Received: " << response << std::endl;
         return response;
     };
+
+    static int parseResponseCode(const std::string& response) {
+        try {
+            return std::stoi(response.substr(0, 3));
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing response code: " << e.what() << std::endl;
+            return 0;
+        }
+    }
 
     static void sendCommand(SOCKET sock, const std::string& cmd) {
         std::cout << "Sent: " << cmd;

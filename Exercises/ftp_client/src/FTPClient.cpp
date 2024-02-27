@@ -3,11 +3,14 @@
 //
 
 #include <sstream>
-#include "FTPClient.h"
+#include "../includes/FTPClient.h"
+#include "../includes/enums/FTPResponseCode.h"
 
-FTPClient::FTPClient(const std::string& serverIP, unsigned short port) {
-    _dataSocket = INVALID_SOCKET;
+FTPClient::FTPClient(const std::string &serverIP, uint16_t port) {
     _controlSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    _dataSocket = INVALID_SOCKET;
+    _dataPort = 0;
+    _dataIP = "";
 
     int ret = MySocket::ftp_server_connect(_controlSocket, serverIP, port);
     if (ret != 0) {
@@ -37,18 +40,24 @@ bool FTPClient::isConnected() const {
     return _connected;
 }
 
-void FTPClient::login(const std::string &userName, const std::string &password) const {
+uint16_t FTPClient::login(const std::string &userName, const std::string &password) const {
+    uint16_t responseCode;
+
     std::ostringstream userCommandStream;
     userCommandStream << "USER " << userName << "\r\n";
-
-    // Send USER command
-    sendCommand(_controlSocket, userCommandStream.str());  // Replace 'your_username' with your actual FTP username
-    receiveResponse(_controlSocket);
+    sendCommand(_controlSocket, userCommandStream.str());
+    responseCode = parseResponseCode(receiveResponse(_controlSocket));
+    if (responseCode != FtpResponseCode::USER_NAME_OKAY_NEED_PASSWORD) {
+        return 0;
+    }
 
     std::ostringstream passCommandStream;
     passCommandStream << "PASS " << password << "\r\n";
+    sendCommand(_controlSocket, passCommandStream.str());
+    responseCode = parseResponseCode(receiveResponse(_controlSocket));
+    if (responseCode != FtpResponseCode::USER_LOGGED_IN) {
+        return 0;
+    }
 
-    // Send PASS command
-    sendCommand(_controlSocket, passCommandStream.str());  // Replace 'your_password' with your actual FTP password
-    receiveResponse(_controlSocket);
+    return responseCode;
 }
