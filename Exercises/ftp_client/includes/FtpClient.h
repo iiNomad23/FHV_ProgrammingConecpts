@@ -14,29 +14,26 @@
 
 class FtpClient {
 private:
-    bool _connected;
     FtpSocket _controlSocket;
     FtpSocket _dataSocket;
-    uint16_t _dataPort;
-    std::string _dataIP;
+    std::string _ftpServerIp;
 
 public:
     FtpClient(const std::string &serverIP, uint16_t port);
 
     ~FtpClient();
 
-    [[nodiscard]] bool isConnected() const;
-
     void login(const std::string &userName, const std::string &password) const;
+
     void close();
 
-    [[nodiscard]] int16_t ls();
+    void ls();
 
-    [[nodiscard]] int16_t get();
+    void get();
 
-    [[nodiscard]] int16_t ascii();
+    void ascii();
 
-    [[nodiscard]] int16_t binary();
+    void binary();
 
     static int16_t parseResponseCode(const std::string &response) {
         try {
@@ -47,20 +44,15 @@ public:
         }
     }
 
-    static void parsePasvResponse(const std::string& response, std::string& ip, uint16_t& port) {
+    static uint16_t parsePasvResponse(const std::string &response, uint16_t &port) {
         std::regex pasvPattern(R"(\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\))");
         std::smatch matches;
 
         if (std::regex_search(response, matches, pasvPattern)) {
             if (matches.size() == 7) {
-                ip = matches[1].str() + "." +
-                     matches[2].str() + "." +
-                     matches[3].str() + "." +
-                     matches[4].str();
-
                 int p1 = std::stoi(matches[5].str());
                 int p2 = std::stoi(matches[6].str());
-                port = (p1 * 256) + p2;
+                return (p1 * 256) + p2;
             } else {
                 throw ParsePasvFailureException("Failed to parse PASV response: " + response);
             }

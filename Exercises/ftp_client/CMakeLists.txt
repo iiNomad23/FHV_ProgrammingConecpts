@@ -15,6 +15,7 @@ add_executable(ftp_client
         includes/exeptions/LoginFailureException.h
         includes/exeptions/ParsePasvFailureException.h
         includes/exeptions/SocketConnectionFailureException.h
+        includes/exeptions/SocketDataFailureException.h
 )
 
 # Link static libraries to the executable target

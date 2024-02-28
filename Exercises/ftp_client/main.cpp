@@ -50,7 +50,7 @@ int main() {
 
             switch (command) {
                 case LS:
-                    // TODO: LS command
+                    ftpClient.ls();
                     break;
                 case GET:
                     // TODO: GET command
