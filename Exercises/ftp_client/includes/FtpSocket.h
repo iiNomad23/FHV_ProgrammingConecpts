@@ -13,10 +13,10 @@ class FtpSocket {
 private:
     SOCKET _socket;
 
-    explicit FtpSocket(SOCKET socket);
-
 public:
     FtpSocket();
+
+    FtpSocket(SOCKET socket);
 
     ~FtpSocket();
 
@@ -38,7 +38,7 @@ public:
             throw SocketConnectionFailureException("Socket connection to server failed!");
         }
 
-        return FtpSocket(newSocket);
+        return {newSocket};
     }
 
     [[nodiscard]] std::string receiveResponse() const;

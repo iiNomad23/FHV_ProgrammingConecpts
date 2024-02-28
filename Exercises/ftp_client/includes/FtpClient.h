@@ -15,7 +15,6 @@
 class FtpClient {
 private:
     FtpSocket _controlSocket;
-    FtpSocket _dataSocket;
     std::string _ftpServerIp;
 
 public:

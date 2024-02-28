@@ -8,15 +8,13 @@
 #include "../includes/exeptions/LoginFailureException.h"
 #include "../includes/exeptions/SocketDataFailureException.h"
 
-FtpClient::FtpClient(const std::string &serverIP, uint16_t port) : _controlSocket(FtpSocket::createSocket(serverIP, port)) {
-    _dataSocket = FtpSocket();
+FtpClient::FtpClient(const std::string &serverIP, uint16_t port) : _controlSocket(
+        FtpSocket::createSocket(serverIP, port)) {
     _ftpServerIp = serverIP;
-
-    (void)_controlSocket.receiveResponse();
+    (void) _controlSocket.receiveResponse();
 }
 
 FtpClient::~FtpClient() {
-    _dataSocket.close();
     _controlSocket.close();
     WSACleanup();
 }
@@ -48,7 +46,6 @@ void FtpClient::login(const std::string &userName, const std::string &password) 
 }
 
 void FtpClient::close() {
-    _dataSocket.close();
     _controlSocket.close();
     WSACleanup();
 }
@@ -67,7 +64,8 @@ void FtpClient::ls() {
 
     try {
         uint16_t port = parsePasvResponse(pasvResponse, port);
-        _dataSocket = FtpSocket::createSocket(_ftpServerIp, port);
+
+        FtpSocket dataSocket = FtpSocket::createSocket(_ftpServerIp, port);
 
         _controlSocket.sendCommand("LIST\r\n");
         responseCode = parseResponseCode(_controlSocket.receiveResponse());
@@ -77,9 +75,9 @@ void FtpClient::ls() {
             );
         }
 
-        std::cout << "Directory listing:\n" << _dataSocket.receiveResponse() << std::endl;
-
-        _dataSocket.close();
+        std::cout << "Directory listing:\n" << std::endl;
+        (void) dataSocket.receiveResponse();
+        dataSocket.close();
 
         responseCode = parseResponseCode(_controlSocket.receiveResponse());
         if (responseCode != FtpServerResponseCode::CLOSING_DATA_CONNECTION) {
@@ -87,7 +85,7 @@ void FtpClient::ls() {
                     "Error: data connection failed with command response status " + std::to_string(responseCode)
             );
         }
-    } catch (const ParsePasvFailureException& e) {
+    } catch (const ParsePasvFailureException &e) {
         throw SocketDataFailureException(e.what());
     }
 }
