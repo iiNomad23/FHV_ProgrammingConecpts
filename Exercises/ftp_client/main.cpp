@@ -30,6 +30,7 @@ int main() {
         try {
             ftpClient.login("admin", "admin");
             std::cout << "Welcome testuser!" << std::endl;
+            std::cout << "Enter 'help' to print all available commands" << std::endl;
         } catch (const LoginFailureException &e) {
             std::cerr << e.what() << std::endl;
 
@@ -41,12 +42,13 @@ int main() {
         std::string userInput;
 
         while (true) {
-            FtpClient::displayCommands();
-
             std::cout << ">>";
             std::getline(std::cin, userInput);
 
             if (userInput.empty()) {
+                continue;
+            } else if (userInput == "help") {
+                FtpClient::displayCommands();
                 continue;
             }
 
@@ -92,8 +94,6 @@ int main() {
             } catch (const SocketConnectionFailureException &e) {
                 std::cerr << e.what() << std::endl;
             }
-
-            waitForEnter();
         }
 
         ftpClient.close();
