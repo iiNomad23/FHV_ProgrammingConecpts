@@ -29,7 +29,7 @@ int main() {
 
         try {
             ftpClient.login("admin", "admin");
-            std::cout << "Welcome testuser!" << std::endl;
+            std::cout << "Welcome admin!" << std::endl;
             std::cout << "Enter 'help' to print all available commands" << std::endl;
         } catch (const LoginFailureException &e) {
             std::cerr << e.what() << std::endl;

@@ -23,10 +23,7 @@ FtpClient::~FtpClient() {
 void FtpClient::login(const std::string &userName, const std::string &password) const {
     int16_t responseCode;
 
-    std::ostringstream userCommandStream;
-    userCommandStream << "USER " << userName << "\r\n";
-    _controlSocket.sendCommand(userCommandStream.str());
-
+    _controlSocket.sendCommand("USER " + userName + "\r\n");
     responseCode = parseResponseCode(_controlSocket.receiveResponse());
     if (responseCode != FtpServerResponseCode::USER_NAME_OKAY_NEED_PASSWORD) {
         throw LoginFailureException(
@@ -34,10 +31,7 @@ void FtpClient::login(const std::string &userName, const std::string &password) 
         );
     }
 
-    std::ostringstream passCommandStream;
-    passCommandStream << "PASS " << password << "\r\n";
-    _controlSocket.sendCommand(passCommandStream.str());
-
+    _controlSocket.sendCommand("PASS " + password + "\r\n");
     responseCode = parseResponseCode(_controlSocket.receiveResponse());
     if (responseCode != FtpServerResponseCode::USER_LOGGED_IN) {
         throw LoginFailureException(
@@ -128,7 +122,7 @@ void FtpClient::get(const std::string &fileName) {
         }
 
         size_t receivedBytes = 0;
-        auto lastUpdateTime = std::chrono::steady_clock::now();
+        auto lastUpdateTimeMs = std::chrono::steady_clock::now();
         std::cout << "\033[?25l"; // hide cursor
 
         char buffer[4096];
@@ -137,18 +131,22 @@ void FtpClient::get(const std::string &fileName) {
             outFile.write(buffer, bytesRead);
 
             // for progress bar
-            auto now = std::chrono::steady_clock::now();
-            auto timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>
-                    (now - lastUpdateTime).count();
+            auto nowMs = std::chrono::steady_clock::now();
+            auto timeSinceLastUpdateMs = std::chrono::duration_cast<std::chrono::milliseconds>
+                    (nowMs - lastUpdateTimeMs).count();
 
             receivedBytes += bytesRead;
-            if (timeSinceLastUpdate > 10) {
+            if (timeSinceLastUpdateMs > 100) {
                 displayProgress(receivedBytes, fileSize);
-                lastUpdateTime = now;
+                lastUpdateTimeMs = nowMs;
             }
         }
 
-        displayProgress(fileSize, fileSize);
+        if (bytesRead >= 0) {
+            displayProgress(fileSize, fileSize);
+        } else {
+            std::cerr << "Download canceled" << std::endl;
+        }
 
         std::cout << "\033[?25h"; // show cursor
         std::cout << std::endl;
@@ -189,7 +187,7 @@ size_t FtpClient::getFileSize(const std::string &fileName) {
 
     std::string response = _controlSocket.receiveResponse();
     int16_t responseCode = parseResponseCode(response);
-    if (responseCode != FILE_STATUS) {
+    if (responseCode != FtpServerResponseCode::FILE_STATUS) {
         std::cerr << "Failed to get file size. Response: " << response << std::endl;
         return 0;
     }
