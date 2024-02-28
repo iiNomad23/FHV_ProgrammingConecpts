@@ -28,11 +28,15 @@ public:
 
     void ls();
 
-    void get();
+    void get(const std::string& fileName);
 
     void setAsciiMode();
 
     void setBinaryMode();
+
+    size_t getFileSize(const std::string& fileName);
+
+    static void displayProgress(size_t received, size_t total);
 
     static int16_t parseResponseCode(const std::string &response) {
         try {

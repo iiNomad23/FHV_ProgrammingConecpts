@@ -14,10 +14,7 @@ private:
     SOCKET _socket;
 
 public:
-    FtpSocket();
-
     explicit FtpSocket(SOCKET socket);
-
     ~FtpSocket();
 
     static int initWinSock() {
@@ -42,6 +39,8 @@ public:
     }
 
     [[nodiscard]] std::string receiveResponse() const;
+
+    int receiveFileData(char* buffer) const;
 
     void sendCommand(const std::string &request) const;
 

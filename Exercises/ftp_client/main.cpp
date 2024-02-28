@@ -4,6 +4,7 @@
 
 #include "includes/FtpClient.h"
 #include "includes/enums/FtpCommand.h"
+#include "includes/exeptions/LoginFailureException.h"
 
 void waitForEnter() {
     std::cout << "Press Enter to continue..." << std::endl;
@@ -27,7 +28,7 @@ int main() {
         try {
             ftpClient.login("admin", "admin");
             std::cout << "Welcome testuser!" << std::endl;
-        } catch (const std::exception &e) {
+        } catch (const LoginFailureException &e) {
             std::cerr << e.what() << std::endl;
 
             ftpClient.close();
@@ -43,32 +44,56 @@ int main() {
             std::cout << ">>";
             std::getline(std::cin, userInput);
 
-            FtpCommand command = stringToFtpCommand(userInput);
+            if (userInput.empty()) {
+                continue;
+            }
+
+            std::istringstream iss(userInput);
+            std::string commandStr;
+            std::string argument;
+            iss >> commandStr >> argument;
+
+            FtpCommand command = stringToFtpCommand(commandStr);
             if (command == FtpCommand::EXIT) {
                 break;
             }
 
-            switch (command) {
-                case LS:
-                    ftpClient.ls();
-                    break;
-                case GET:
-                    // TODO: GET command
-                    break;
-                case ASCII:
-                    ftpClient.setAsciiMode();
-                    break;
-                case BINARY:
-                    ftpClient.setBinaryMode();
-                    break;
-                default:
-                    std::cout << "Unknown command" << std::endl;
-                    break;
+            try {
+                switch (command) {
+                    case LS:
+                        ftpClient.ls();
+                        break;
+                    case GET:
+                        if (!argument.empty()) {
+                            size_t dotPos = argument.find('.');
+                            if (dotPos != std::string::npos && dotPos != 0 && dotPos < (argument.length() - 1)) {
+                                ftpClient.get(argument);
+                            } else {
+                                std::cout << "Please specify a valid filename with filetype for the get command (e.g., file.txt)" << std::endl;
+                            }
+                        } else {
+                            std::cout << "Please specify a filename for the get command" << std::endl;
+                        }
+                        break;
+                    case ASCII:
+                        ftpClient.setAsciiMode();
+                        break;
+                    case BINARY:
+                        ftpClient.setBinaryMode();
+                        break;
+                    default:
+                        std::cout << "Unknown command" << std::endl;
+                        break;
+                }
+            } catch (const SocketConnectionFailureException &e) {
+                std::cerr << e.what() << std::endl;
             }
+
+            waitForEnter();
         }
 
         ftpClient.close();
-    } catch (const SocketConnectionFailureException& e) {
+    } catch (const std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
     }
 

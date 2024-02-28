@@ -6,10 +6,6 @@
 #include <limits>
 #include "../includes/FtpSocket.h"
 
-FtpSocket::FtpSocket() {
-    _socket = INVALID_SOCKET;
-}
-
 FtpSocket::FtpSocket(SOCKET socket) {
     _socket = socket;
 }
@@ -34,6 +30,19 @@ std::string FtpSocket::receiveResponse() const {
     std::string response(buffer, bytesReceived);
     std::cout << "Received: " << response << std::endl;
     return response;
+}
+
+int FtpSocket::receiveFileData(char *buffer) const {
+    int bytesReceived = recv(_socket, buffer, sizeof(buffer), 0);
+    if (bytesReceived == SOCKET_ERROR) {
+        int error = WSAGetLastError();
+        std::cerr << "recv failed with error: " << error << std::endl;
+        return SOCKET_ERROR;
+    } else if (bytesReceived == 0) {
+        return 0;
+    }
+
+    return bytesReceived;
 }
 
 void FtpSocket::sendCommand(const std::string &cmd) const {
