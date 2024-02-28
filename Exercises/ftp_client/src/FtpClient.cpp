@@ -64,7 +64,6 @@ void FtpClient::ls() {
 
     try {
         uint16_t port = parsePasvResponse(pasvResponse, port);
-
         FtpSocket dataSocket = FtpSocket::createSocket(_ftpServerIp, port);
 
         _controlSocket.sendCommand("LIST\r\n");
@@ -94,10 +93,18 @@ void FtpClient::get() {
     throw LoginFailureException("Error: command response status" + std::to_string(-1));
 }
 
-void FtpClient::ascii() {
-    throw LoginFailureException("Error: command response status" + std::to_string(-1));
+void FtpClient::setAsciiMode() {
+    _controlSocket.sendCommand("TYPE A\r\n");
+    int16_t responseCode = parseResponseCode(_controlSocket.receiveResponse());
+    if (responseCode != FtpServerResponseCode::COMMAND_OKAY) {
+        std::cerr << "Switching to ascii mode failed" << std::endl;
+    }
 }
 
-void FtpClient::binary() {
-    throw LoginFailureException("Error: command response status" + std::to_string(-1));
+void FtpClient::setBinaryMode() {
+    _controlSocket.sendCommand("TYPE I\r\n");
+    int16_t responseCode = parseResponseCode(_controlSocket.receiveResponse());
+    if (responseCode != FtpServerResponseCode::COMMAND_OKAY) {
+        std::cerr << "Switching to binary mode failed" << std::endl;
+    }
 }

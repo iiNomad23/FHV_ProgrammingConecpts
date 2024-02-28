@@ -56,10 +56,10 @@ int main() {
                     // TODO: GET command
                     break;
                 case ASCII:
-                    // TODO: ASCII command
+                    ftpClient.setAsciiMode();
                     break;
                 case BINARY:
-                    // TODO: BINARY command
+                    ftpClient.setBinaryMode();
                     break;
                 default:
                     std::cout << "Unknown command" << std::endl;

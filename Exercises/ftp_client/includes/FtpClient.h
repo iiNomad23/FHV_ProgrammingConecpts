@@ -30,9 +30,9 @@ public:
 
     void get();
 
-    void ascii();
+    void setAsciiMode();
 
-    void binary();
+    void setBinaryMode();
 
     static int16_t parseResponseCode(const std::string &response) {
         try {
