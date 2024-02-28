@@ -17,11 +17,22 @@ enum FtpCommand {
 };
 
 FtpCommand stringToFtpCommand(const std::string &commandStr) {
-    if (commandStr == "ls") return LS;
-    if (commandStr == "get") return GET;
-    if (commandStr == "ascii") return ASCII;
-    if (commandStr == "binary") return BINARY;
-    if (commandStr == "exit") return EXIT;
+    if (commandStr == "ls") {
+        return LS;
+    }
+    if (commandStr == "get") {
+        return GET;
+    }
+    if (commandStr == "ascii") {
+        return ASCII;
+    }
+    if (commandStr == "binary") {
+        return BINARY;
+    }
+    if (commandStr == "exit") {
+        return EXIT;
+    }
+
     return UNKNOWN;
 }
 

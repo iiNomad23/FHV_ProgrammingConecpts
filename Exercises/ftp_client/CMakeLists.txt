@@ -10,9 +10,11 @@ add_executable(ftp_client
         includes/FtpClient.h
         includes/enums/FtpServerResponseCode.h
         includes/enums/FtpCommand.h
-        src/MySocket.cpp
+        src/FtpSocket.cpp
         src/FtpClient.cpp
-        includes/exeptions/ResponseFailureException.h
+        includes/exeptions/LoginFailureException.h
+        includes/exeptions/ParsePasvFailureException.h
+        includes/exeptions/SocketConnectionFailureException.h
 )
 
 # Link static libraries to the executable target

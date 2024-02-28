@@ -21,52 +21,55 @@ int main() {
     const std::string serverIP = "127.0.0.1";
     const uint16_t port = 21;
 
-    FtpClient ftpClient(serverIP, port);
-    if (!ftpClient.isConnected()) {
-        waitForEnter();
-        return 0;
-    }
-
     try {
-        ftpClient.login("admin", "admin");
-        std::cout << "Welcome testuser!" << std::endl;
-    } catch (const std::exception &e) {
+        FtpClient ftpClient(serverIP, port);
+
+        try {
+            ftpClient.login("admin", "admin");
+            std::cout << "Welcome testuser!" << std::endl;
+        } catch (const std::exception &e) {
+            std::cerr << e.what() << std::endl;
+
+            ftpClient.close();
+            waitForEnter();
+            return 0;
+        }
+
+        std::string userInput;
+
+        while (true) {
+            FtpClient::displayCommands();
+
+            std::cout << ">>";
+            std::getline(std::cin, userInput);
+
+            FtpCommand command = stringToFtpCommand(userInput);
+            if (command == FtpCommand::EXIT) {
+                break;
+            }
+
+            switch (command) {
+                case LS:
+                    // TODO: LS command
+                    break;
+                case GET:
+                    // TODO: GET command
+                    break;
+                case ASCII:
+                    // TODO: ASCII command
+                    break;
+                case BINARY:
+                    // TODO: BINARY command
+                    break;
+                default:
+                    std::cout << "Unknown command" << std::endl;
+                    break;
+            }
+        }
+
+        ftpClient.close();
+    } catch (const SocketConnectionFailureException& e) {
         std::cerr << e.what() << std::endl;
-        waitForEnter();
-        return 0;
-    }
-
-    std::string userInput;
-
-    while (true) {
-        FtpClient::displayCommands();
-
-        std::cout << ">>";
-        std::getline(std::cin, userInput);
-
-        FtpCommand command = stringToFtpCommand(userInput);
-        if (command == FtpCommand::EXIT) {
-            // TODO: close
-            break;
-        }
-
-        switch (command) {
-            case LS:
-                // TODO: LS command
-                break;
-            case GET:
-                // TODO: GET command
-                break;
-            case ASCII:
-                // TODO: ASCII command
-                break;
-            case BINARY:
-                // TODO: BINARY command
-                break;
-            default:
-                std::cout << "Unknown command" << std::endl;
-                break;
-        }
     }
 
     return 0;

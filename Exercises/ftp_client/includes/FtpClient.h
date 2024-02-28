@@ -5,16 +5,18 @@
 #ifndef FTP_CLIENT_FTPCLIENT_H
 #define FTP_CLIENT_FTPCLIENT_H
 
-#include "FtpSocket.h"
 #include <string>
 #include <iostream>
 #include <limits>
+#include <regex>
+#include "FtpSocket.h"
+#include "exeptions/ParsePasvFailureException.h"
 
 class FtpClient {
 private:
     bool _connected;
-    SOCKET _controlSocket;
-    SOCKET _dataSocket;
+    FtpSocket _controlSocket;
+    FtpSocket _dataSocket;
     uint16_t _dataPort;
     std::string _dataIP;
 
@@ -26,8 +28,7 @@ public:
     [[nodiscard]] bool isConnected() const;
 
     void login(const std::string &userName, const std::string &password) const;
-
-    [[nodiscard]] int16_t close();
+    void close();
 
     [[nodiscard]] int16_t ls();
 
@@ -37,20 +38,34 @@ public:
 
     [[nodiscard]] int16_t binary();
 
-    static std::string receiveResponse(SOCKET sock) {
-        char buffer[1024] = {};
-        recv(sock, buffer, sizeof(buffer), 0);
-        std::string response(buffer);
-        std::cout << "Received: " << response << std::endl;
-        return response;
-    };
-
     static int16_t parseResponseCode(const std::string &response) {
         try {
             return static_cast<int16_t>(std::stoi(response.substr(0, 3)));
         } catch (const std::exception &e) {
             std::cerr << "Error parsing response code: " << e.what() << std::endl;
             return 0;
+        }
+    }
+
+    static void parsePasvResponse(const std::string& response, std::string& ip, uint16_t& port) {
+        std::regex pasvPattern(R"(\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\))");
+        std::smatch matches;
+
+        if (std::regex_search(response, matches, pasvPattern)) {
+            if (matches.size() == 7) {
+                ip = matches[1].str() + "." +
+                     matches[2].str() + "." +
+                     matches[3].str() + "." +
+                     matches[4].str();
+
+                int p1 = std::stoi(matches[5].str());
+                int p2 = std::stoi(matches[6].str());
+                port = (p1 * 256) + p2;
+            } else {
+                throw ParsePasvFailureException("Failed to parse PASV response: " + response);
+            }
+        } else {
+            throw ParsePasvFailureException("PASV response does not match expected format: " + response);
         }
     }
 
@@ -63,21 +78,8 @@ public:
         std::cout << "ascii: Set transfer mode to ASCII" << std::endl;
         std::cout << "binary: Set transfer mode to binary" << std::endl;
         std::cout << "exit: closes the connection and the process" << std::endl;
-        std::cout << "---------------------------------------------" << std::endl;
         std::cout << std::endl;
     }
-
-    static void sendCommand(SOCKET sock, const std::string &cmd) {
-        std::cout << "Sent: " << cmd;
-
-        // ensure the command length does not exceed the maximum value for int
-        if (cmd.length() > static_cast<std::string::size_type>(std::numeric_limits<int>::max())) {
-            std::cerr << "Command too long to send" << std::endl;
-            return;
-        }
-
-        send(sock, cmd.c_str(), static_cast<int>(cmd.length()), 0);
-    };
 };
 
 
