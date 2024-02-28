@@ -10,8 +10,7 @@
 #include "../includes/exeptions/LoginFailureException.h"
 #include "../includes/exeptions/SocketDataFailureException.h"
 
-FtpClient::FtpClient(const std::string &serverIP, uint16_t port) : _controlSocket(
-        FtpSocket::createSocket(serverIP, port)) {
+FtpClient::FtpClient(const std::string &serverIP, const FtpSocket &controlSocket) : _controlSocket(controlSocket) {
     _ftpServerIp = serverIP;
     (void) _controlSocket.receiveResponse();
 }
@@ -65,7 +64,7 @@ void FtpClient::ls() {
     }
 
     try {
-        uint16_t port = parsePasvResponse(pasvResponse, port);
+        uint16_t port = parsePasvResponse(pasvResponse);
         FtpSocket dataSocket = FtpSocket::createSocket(_ftpServerIp, port);
 
         _controlSocket.sendCommand("LIST\r\n");
@@ -104,7 +103,7 @@ void FtpClient::get(const std::string &fileName) {
     }
 
     try {
-        uint16_t port = parsePasvResponse(pasvResponse, port);
+        uint16_t port = parsePasvResponse(pasvResponse);
         FtpSocket dataSocket = FtpSocket::createSocket(_ftpServerIp, port);
 
         size_t fileSize = getFileSize(fileName);
@@ -138,7 +137,8 @@ void FtpClient::get(const std::string &fileName) {
 
             // for progress bar
             auto now = std::chrono::steady_clock::now();
-            auto timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdateTime).count();
+            auto timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    now - lastUpdateTime).count();
             if (timeSinceLastUpdate > 10) {
                 displayProgress(received, fileSize);
                 lastUpdateTime = now;
@@ -179,7 +179,7 @@ void FtpClient::setBinaryMode() {
     }
 }
 
-size_t FtpClient::getFileSize(const std::string& fileName) {
+size_t FtpClient::getFileSize(const std::string &fileName) {
     _controlSocket.sendCommand("SIZE " + fileName + "\r\n");
 
     std::string response = _controlSocket.receiveResponse();
@@ -195,8 +195,9 @@ size_t FtpClient::getFileSize(const std::string& fileName) {
 
 void FtpClient::displayProgress(size_t received, size_t total) {
     const int barWidth = 50;
+    int pos = int(barWidth * received / total);
+
     std::cout << "[";
-    int pos = barWidth * received / total;
     for (int i = 0; i < barWidth; ++i) {
         if (i < pos) std::cout << "=";
         else if (i == pos) std::cout << ">";
@@ -205,4 +206,40 @@ void FtpClient::displayProgress(size_t received, size_t total) {
     std::cout << "] " << (received * 100 / total) << " %\r" << std::flush;
 }
 
+int16_t FtpClient::parseResponseCode(const std::string &response) {
+    try {
+        return static_cast<int16_t>(std::stoi(response.substr(0, 3)));
+    } catch (const std::exception &e) {
+        std::cerr << "Error parsing response code: " << e.what() << std::endl;
+        return 0;
+    }
+}
 
+uint16_t FtpClient::parsePasvResponse(const std::string &response) {
+    std::regex pasvPattern(R"(\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\))");
+    std::smatch matches;
+
+    if (std::regex_search(response, matches, pasvPattern)) {
+        if (matches.size() == 7) {
+            int p1 = std::stoi(matches[5].str());
+            int p2 = std::stoi(matches[6].str());
+            return (p1 * 256) + p2;
+        } else {
+            throw ParsePasvFailureException("Failed to parse PASV response: " + response);
+        }
+    } else {
+        throw ParsePasvFailureException("PASV response does not match expected format: " + response);
+    }
+}
+
+void FtpClient::displayCommands() {
+    std::cout << std::endl;
+    std::cout << "Command List:" << std::endl;
+    std::cout << "---------------------------------------------" << std::endl;
+    std::cout << "ls: List directory contents" << std::endl;
+    std::cout << "get <filename>: Download a file" << std::endl;
+    std::cout << "ascii: Set transfer mode to ASCII" << std::endl;
+    std::cout << "binary: Set transfer mode to binary" << std::endl;
+    std::cout << "exit: closes the connection and the process" << std::endl;
+    std::cout << std::endl;
+}

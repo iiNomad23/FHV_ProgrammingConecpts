@@ -13,7 +13,8 @@ void waitForEnter() {
 }
 
 int main() {
-    if (FtpSocket::initWinSock() != 0) {
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         std::cerr << "Failed to initialize WinSock" << std::endl;
         waitForEnter();
         return 0;
@@ -23,7 +24,8 @@ int main() {
     const uint16_t port = 21;
 
     try {
-        FtpClient ftpClient(serverIP, port);
+        FtpSocket controlSocket = FtpSocket::createSocket(serverIP, port);
+        FtpClient ftpClient(serverIP, controlSocket);
 
         try {
             ftpClient.login("admin", "admin");
@@ -69,7 +71,9 @@ int main() {
                             if (dotPos != std::string::npos && dotPos != 0 && dotPos < (argument.length() - 1)) {
                                 ftpClient.get(argument);
                             } else {
-                                std::cout << "Please specify a valid filename with filetype for the get command (e.g., file.txt)" << std::endl;
+                                std::cout
+                                        << "Please specify a valid filename with filetype for the get command (e.g., file.txt)"
+                                        << std::endl;
                             }
                         } else {
                             std::cout << "Please specify a filename for the get command" << std::endl;

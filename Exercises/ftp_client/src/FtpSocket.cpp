@@ -64,3 +64,19 @@ void FtpSocket::close() {
         std::cout << "Socket connection closed" << std::endl;
     }
 }
+
+FtpSocket FtpSocket::createSocket(const std::string &serverIP, uint16_t port) {
+    SOCKET newSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    struct sockaddr_in ftpServer{};
+    ftpServer.sin_family = AF_INET;
+    ftpServer.sin_port = htons(port);
+    ftpServer.sin_addr.s_addr = inet_addr(serverIP.c_str());
+
+    int responseCode = connect(newSocket, (struct sockaddr *) &ftpServer, sizeof(ftpServer));
+    if (responseCode != 0) {
+        throw SocketConnectionFailureException("Socket connection to server failed!");
+    }
+
+    return FtpSocket(newSocket);
+}
