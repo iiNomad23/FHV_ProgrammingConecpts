@@ -127,8 +127,9 @@ void FtpClient::get(const std::string &fileName) {
             throw SocketDataFailureException("Failed to open local file for writing: " + fileName);
         }
 
-        size_t received = 0;
+        size_t receivedBytes = 0;
         auto lastUpdateTime = std::chrono::steady_clock::now();
+        std::cout << "\033[?25l"; // hide cursor
 
         char buffer[4096];
         int bytesRead;
@@ -137,17 +138,21 @@ void FtpClient::get(const std::string &fileName) {
 
             // for progress bar
             auto now = std::chrono::steady_clock::now();
-            auto timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    now - lastUpdateTime).count();
+            auto timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>
+                    (now - lastUpdateTime).count();
+
+            receivedBytes += bytesRead;
             if (timeSinceLastUpdate > 10) {
-                displayProgress(received, fileSize);
+                displayProgress(receivedBytes, fileSize);
                 lastUpdateTime = now;
             }
         }
 
         displayProgress(fileSize, fileSize);
-        std::cerr << std::endl;
-        std::cerr << std::endl;
+
+        std::cout << "\033[?25h"; // show cursor
+        std::cout << std::endl;
+        std::cout << std::endl;
 
         outFile.close();
         dataSocket.close();
