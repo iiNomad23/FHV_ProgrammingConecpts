@@ -11,7 +11,6 @@
 
 FtpClient::FtpClient(const std::string &serverIP, const FtpSocket &controlSocket) : _controlSocket(controlSocket) {
     _ftpServerIp = serverIP;
-    (void) _controlSocket.receiveResponse(true);
 }
 
 FtpClient::~FtpClient() {
@@ -68,8 +67,8 @@ void FtpClient::ls() {
             );
         }
 
-        std::cout << "Directory listing:\n" << std::endl;
-        (void) dataSocket.receiveResponse(false);
+        std::cout << "Directory listing:" << std::endl;
+        std::cout << dataSocket.receiveResponse(false) << std::endl;
         // dataSocket closes in ~FtpSocket
 
         responseCode = parseResponseCode(_controlSocket.receiveResponse(true));

@@ -4,6 +4,7 @@
 
 #include "includes/FtpClient.h"
 #include "includes/enums/FtpCommand.h"
+#include "includes/enums/FtpServerResponseCode.h"
 #include "includes/exeptions/LoginFailureException.h"
 #include "includes/exeptions/SocketDataFailureException.h"
 
@@ -26,6 +27,12 @@ int main() {
 
     try {
         FtpSocket controlSocket = FtpSocket::createSocket(serverIP, port);
+        int16_t responseCode = FtpClient::parseResponseCode(controlSocket.receiveResponse(true));
+        if (responseCode != FtpServerResponseCode::SERVICE_READY) {
+            throw SocketConnectionFailureException(
+                    "FTP service not ready " + std::to_string(responseCode));
+        }
+
         FtpClient ftpClient(serverIP, controlSocket);
 
         try {
@@ -100,6 +107,9 @@ int main() {
         }
 
         ftpClient.close();
+    } catch (const SocketConnectionFailureException &e) {
+        std::cerr << e.what() << std::endl;
+        waitForEnter();
     } catch (const std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
         waitForEnter();
