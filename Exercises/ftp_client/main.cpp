@@ -30,7 +30,8 @@ int main() {
         int16_t responseCode = FtpClient::parseResponseCode(controlSocket.receiveResponse(true));
         if (responseCode != FtpServerResponseCode::SERVICE_READY) {
             throw SocketConnectionFailureException(
-                    "FTP service not ready " + std::to_string(responseCode));
+                    "FTP service not ready " + std::to_string(responseCode)
+            );
         }
 
         FtpClient ftpClient(serverIP, controlSocket);

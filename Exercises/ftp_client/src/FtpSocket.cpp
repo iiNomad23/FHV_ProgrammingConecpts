@@ -129,7 +129,8 @@ FtpSocket FtpSocket::createSocket(const std::string &serverIP, uint16_t port) {
     int responseCode = connect(newSocket, (struct sockaddr *) &ftpServer, sizeof(ftpServer));
     if (responseCode != 0) {
         throw SocketConnectionFailureException(
-                "Socket connection to server failed with response status " + std::to_string(responseCode));
+                "Socket connection to server failed with response status " + std::to_string(responseCode)
+        );
     }
 
     return FtpSocket(newSocket);
