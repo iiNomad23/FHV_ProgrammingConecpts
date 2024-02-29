@@ -13,10 +13,7 @@ FtpSocket::FtpSocket(SOCKET socket) {
 }
 
 FtpSocket::~FtpSocket() {
-    if (_socket != INVALID_SOCKET) {
-        closesocket(_socket);
-        _socket = INVALID_SOCKET;
-    }
+    close();
 }
 
 std::string FtpSocket::receiveResponse(bool isControlResponse) const {
