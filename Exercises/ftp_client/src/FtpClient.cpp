@@ -11,7 +11,7 @@
 
 FtpClient::FtpClient(const std::string &serverIP, const FtpSocket &controlSocket) : _controlSocket(controlSocket) {
     _ftpServerIp = serverIP;
-    (void) _controlSocket.receiveResponse();
+    (void) _controlSocket.receiveResponse(true);
 }
 
 FtpClient::~FtpClient() {
@@ -23,7 +23,7 @@ void FtpClient::login(const std::string &userName, const std::string &password) 
     int16_t responseCode;
 
     _controlSocket.sendCommand("USER " + userName + "\r\n");
-    responseCode = parseResponseCode(_controlSocket.receiveResponse());
+    responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
     if (responseCode != FtpServerResponseCode::USER_NAME_OKAY_NEED_PASSWORD) {
         throw LoginFailureException(
                 "Error: login failed with command response status " + std::to_string(responseCode)
@@ -31,7 +31,7 @@ void FtpClient::login(const std::string &userName, const std::string &password) 
     }
 
     _controlSocket.sendCommand("PASS " + password + "\r\n");
-    responseCode = parseResponseCode(_controlSocket.receiveResponse());
+    responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
     if (responseCode != FtpServerResponseCode::USER_LOGGED_IN) {
         throw LoginFailureException(
                 "Error: login failed with command response status " + std::to_string(responseCode)
@@ -48,7 +48,7 @@ void FtpClient::ls() {
     int16_t responseCode;
 
     _controlSocket.sendCommand("PASV\r\n");
-    std::string pasvResponse = _controlSocket.receiveResponse();
+    std::string pasvResponse = _controlSocket.receiveResponse(true);
     responseCode = parseResponseCode(pasvResponse);
     if (responseCode != FtpServerResponseCode::ENTERING_PASSIVE_MODE) {
         throw SocketDataFailureException(
@@ -61,7 +61,7 @@ void FtpClient::ls() {
         FtpSocket dataSocket = FtpSocket::createSocket(_ftpServerIp, port);
 
         _controlSocket.sendCommand("LIST\r\n");
-        responseCode = parseResponseCode(_controlSocket.receiveResponse());
+        responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
         if (responseCode != FtpServerResponseCode::FILE_STATUS_OKAY) {
             throw SocketDataFailureException(
                     "Error: data connection failed with command response status " + std::to_string(responseCode)
@@ -69,10 +69,10 @@ void FtpClient::ls() {
         }
 
         std::cout << "Directory listing:\n" << std::endl;
-        (void) dataSocket.receiveResponse();
-        dataSocket.close();
+        (void) dataSocket.receiveResponse(false);
+        // dataSocket closes in ~FtpSocket
 
-        responseCode = parseResponseCode(_controlSocket.receiveResponse());
+        responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
         if (responseCode != FtpServerResponseCode::CLOSING_DATA_CONNECTION) {
             throw SocketDataFailureException(
                     "Error: data connection failed with command response status " + std::to_string(responseCode)
@@ -80,6 +80,8 @@ void FtpClient::ls() {
         }
     } catch (const ParsePasvFailureException &e) {
         throw SocketDataFailureException(e.what());
+    } catch (const SocketDataFailureException &e) {
+        throw;
     }
 }
 
@@ -87,7 +89,7 @@ void FtpClient::get(const std::string &fileName) {
     int16_t responseCode;
 
     _controlSocket.sendCommand("PASV\r\n");
-    std::string pasvResponse = _controlSocket.receiveResponse();
+    std::string pasvResponse = _controlSocket.receiveResponse(true);
     responseCode = parseResponseCode(pasvResponse);
     if (responseCode != FtpServerResponseCode::ENTERING_PASSIVE_MODE) {
         throw SocketDataFailureException(
@@ -102,7 +104,7 @@ void FtpClient::get(const std::string &fileName) {
         size_t fileSize = getFileSize(fileName);
 
         _controlSocket.sendCommand("RETR " + fileName + "\r\n");
-        responseCode = parseResponseCode(_controlSocket.receiveResponse());
+        responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
         if (responseCode != FtpServerResponseCode::FILE_STATUS_OKAY) {
             if (responseCode == FtpServerResponseCode::FILE_NOT_FOUND) {
                 throw SocketDataFailureException(
@@ -116,9 +118,9 @@ void FtpClient::get(const std::string &fileName) {
         }
 
         dataSocket.receiveFileData(fileName, fileSize);
-        dataSocket.close();
+        // dataSocket closes in ~FtpSocket
 
-        responseCode = parseResponseCode(_controlSocket.receiveResponse());
+        responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
         if (responseCode != FtpServerResponseCode::CLOSING_DATA_CONNECTION) {
             throw SocketDataFailureException(
                     "Error: data connection failed with command response status " + std::to_string(responseCode)
@@ -126,12 +128,14 @@ void FtpClient::get(const std::string &fileName) {
         }
     } catch (const ParsePasvFailureException &e) {
         throw SocketDataFailureException(e.what());
+    } catch (const SocketDataFailureException &e) {
+        throw;
     }
 }
 
 void FtpClient::setAsciiMode() {
     _controlSocket.sendCommand("TYPE A\r\n");
-    int16_t responseCode = parseResponseCode(_controlSocket.receiveResponse());
+    int16_t responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
     if (responseCode != FtpServerResponseCode::COMMAND_OKAY) {
         std::cerr << "Switching to ascii mode failed" << std::endl;
     }
@@ -139,7 +143,7 @@ void FtpClient::setAsciiMode() {
 
 void FtpClient::setBinaryMode() {
     _controlSocket.sendCommand("TYPE I\r\n");
-    int16_t responseCode = parseResponseCode(_controlSocket.receiveResponse());
+    int16_t responseCode = parseResponseCode(_controlSocket.receiveResponse(true));
     if (responseCode != FtpServerResponseCode::COMMAND_OKAY) {
         std::cerr << "Switching to binary mode failed" << std::endl;
     }
@@ -148,11 +152,10 @@ void FtpClient::setBinaryMode() {
 size_t FtpClient::getFileSize(const std::string &fileName) {
     _controlSocket.sendCommand("SIZE " + fileName + "\r\n");
 
-    std::string response = _controlSocket.receiveResponse();
+    std::string response = _controlSocket.receiveResponse(true);
     int16_t responseCode = parseResponseCode(response);
     if (responseCode != FtpServerResponseCode::FILE_STATUS) {
-        std::cerr << "Failed to get file size. Response: " << response << std::endl;
-        return 0;
+        throw SocketDataFailureException("Error: File does not exist");
     }
 
     size_t fileSize = std::stoll(response.substr(4));

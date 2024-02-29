@@ -5,6 +5,7 @@
 #include "includes/FtpClient.h"
 #include "includes/enums/FtpCommand.h"
 #include "includes/exeptions/LoginFailureException.h"
+#include "includes/exeptions/SocketDataFailureException.h"
 
 void waitForEnter() {
     std::cout << "Press Enter to exit..." << std::endl;
@@ -92,6 +93,8 @@ int main() {
                         break;
                 }
             } catch (const SocketConnectionFailureException &e) {
+                std::cerr << e.what() << std::endl;
+            } catch (const SocketDataFailureException &e) {
                 std::cerr << e.what() << std::endl;
             }
         }

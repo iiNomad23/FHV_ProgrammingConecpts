@@ -19,23 +19,25 @@ FtpSocket::~FtpSocket() {
     }
 }
 
-std::string FtpSocket::receiveResponse() const {
-    char buffer[CONTROL_RESPONSE_BUFFER_SIZE] = {};
+std::string FtpSocket::receiveResponse(bool isControlResponse) const {
+    std::string response;
 
-    int bytesReceived = recv(_socket, buffer, sizeof(buffer), 0);
-    if (bytesReceived == SOCKET_ERROR) {
-        int error = WSAGetLastError();
-        std::cerr << "recv failed with error: " << error << std::endl;
-        return "";
+    char buffer[RESPONSE_BUFFER_SIZE] = {};
+    if (isControlResponse) {
+        response.append(buffer, receiveResponseChunk(buffer, RESPONSE_BUFFER_SIZE));
+    } else {
+        int bytesRead;
+        while ((bytesRead = receiveResponseChunk(buffer, RESPONSE_BUFFER_SIZE)) > 0) {
+            response.append(buffer, bytesRead);
+        }
     }
 
-    std::string response(buffer, bytesReceived);
     std::cout << "Received: " << response << std::endl;
     return response;
 }
 
-int FtpSocket::receiveFileDataChunk(char *buffer) const {
-    int bytesReceived = recv(_socket, buffer, sizeof(buffer), 0);
+int FtpSocket::receiveResponseChunk(char *buffer, uint16_t bufferSize) const {
+    int bytesReceived = recv(_socket, buffer, bufferSize, 0);
     if (bytesReceived == SOCKET_ERROR) {
         int error = WSAGetLastError();
         std::cerr << "recv failed with error: " << error << std::endl;
@@ -59,7 +61,7 @@ void FtpSocket::receiveFileData(const std::string &fileName, const size_t fileSi
 
     char buffer[FILE_BUFFER_SIZE];
     int bytesRead;
-    while ((bytesRead = receiveFileDataChunk(buffer)) > 0) {
+    while ((bytesRead = receiveResponseChunk(buffer, FILE_BUFFER_SIZE)) > 0) {
         outFile.write(buffer, bytesRead);
 
         // for progress bar
