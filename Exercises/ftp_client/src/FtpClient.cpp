@@ -4,7 +4,6 @@
 
 #include <sstream>
 #include <fstream>
-#include <chrono>
 #include "../includes/FtpClient.h"
 #include "../includes/enums/FtpServerResponseCode.h"
 #include "../includes/exeptions/LoginFailureException.h"
@@ -116,42 +115,7 @@ void FtpClient::get(const std::string &fileName) {
             }
         }
 
-        std::ofstream outFile(fileName, std::ofstream::binary);
-        if (!outFile.is_open()) {
-            throw SocketDataFailureException("Failed to open local file for writing: " + fileName);
-        }
-
-        size_t receivedBytes = 0;
-        auto lastUpdateTimeMs = std::chrono::steady_clock::now();
-        std::cout << "\033[?25l" << std::endl; // hide cursor
-
-        char buffer[FILE_BUFFER_SIZE];
-        int bytesRead;
-        while ((bytesRead = dataSocket.receiveFileData(buffer)) > 0) {
-            outFile.write(buffer, bytesRead);
-
-            // for progress bar
-            auto nowMs = std::chrono::steady_clock::now();
-            auto timeSinceLastUpdateMs = std::chrono::duration_cast<std::chrono::milliseconds>
-                    (nowMs - lastUpdateTimeMs).count();
-
-            receivedBytes += bytesRead;
-            if (timeSinceLastUpdateMs > PROGRESS_BAR_UPDATE_INTERVAL_MS) {
-                displayProgress(receivedBytes, fileSize);
-                lastUpdateTimeMs = nowMs;
-            }
-        }
-
-        if (bytesRead >= 0) {
-            displayProgress(fileSize, fileSize);
-        } else {
-            std::cerr << "Download canceled" << std::endl;
-        }
-
-        std::cout << "\033[?25h" << std::endl; // show cursor
-        std::cout << std::endl;
-
-        outFile.close();
+        dataSocket.receiveFileData(fileName, fileSize);
         dataSocket.close();
 
         responseCode = parseResponseCode(_controlSocket.receiveResponse());
@@ -193,18 +157,6 @@ size_t FtpClient::getFileSize(const std::string &fileName) {
 
     size_t fileSize = std::stoll(response.substr(4));
     return fileSize;
-}
-
-void FtpClient::displayProgress(size_t received, size_t total) {
-    int pos = int(PROGRESS_BAR_WIDTH * received / total);
-
-    std::cout << "[";
-    for (int i = 0; i < PROGRESS_BAR_WIDTH; ++i) {
-        if (i < pos) std::cout << "=";
-        else if (i == pos) std::cout << ">";
-        else std::cout << " ";
-    }
-    std::cout << "] " << (received * 100 / total) << " %\r" << std::flush;
 }
 
 int16_t FtpClient::parseResponseCode(const std::string &response) {

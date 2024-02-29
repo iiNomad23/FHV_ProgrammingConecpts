@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <limits>
+#include <chrono>
+#include <fstream>
 #include "../includes/FtpSocket.h"
 
 FtpSocket::FtpSocket(SOCKET socket) {
@@ -32,7 +34,7 @@ std::string FtpSocket::receiveResponse() const {
     return response;
 }
 
-int FtpSocket::receiveFileData(char *buffer) const {
+int FtpSocket::receiveFileDataChunk(char *buffer) const {
     int bytesReceived = recv(_socket, buffer, sizeof(buffer), 0);
     if (bytesReceived == SOCKET_ERROR) {
         int error = WSAGetLastError();
@@ -43,6 +45,45 @@ int FtpSocket::receiveFileData(char *buffer) const {
     }
 
     return bytesReceived;
+}
+
+void FtpSocket::receiveFileData(const std::string &fileName, const size_t fileSize) {
+    std::ofstream outFile(fileName, std::ofstream::binary);
+    if (!outFile.is_open()) {
+        std::cerr << "Failed to open local file for writing: " << fileName << std::endl;
+        return;
+    }
+
+    size_t receivedBytes = 0;
+    auto lastUpdateTimeMs = std::chrono::steady_clock::now();
+
+    char buffer[FILE_BUFFER_SIZE];
+    int bytesRead;
+    while ((bytesRead = receiveFileDataChunk(buffer)) > 0) {
+        outFile.write(buffer, bytesRead);
+
+        // for progress bar
+        auto nowMs = std::chrono::steady_clock::now();
+        auto timeSinceLastUpdateMs = std::chrono::duration_cast<std::chrono::milliseconds>
+                (nowMs - lastUpdateTimeMs).count();
+
+        receivedBytes += bytesRead;
+        if (timeSinceLastUpdateMs > PROGRESS_BAR_UPDATE_INTERVAL_MS) {
+            displayProgress(receivedBytes, fileSize);
+            lastUpdateTimeMs = nowMs;
+        }
+    }
+
+    if (bytesRead >= 0) {
+        displayProgress(fileSize, fileSize);
+    } else {
+        std::cerr << "Download canceled" << std::endl;
+    }
+
+    std::cout << std::endl;
+    std::cout << std::endl;
+
+    outFile.close();
 }
 
 void FtpSocket::sendCommand(const std::string &cmd) const {
@@ -63,6 +104,18 @@ void FtpSocket::close() {
         _socket = INVALID_SOCKET;
         std::cout << "Socket connection closed" << std::endl;
     }
+}
+
+void FtpSocket::displayProgress(size_t received, size_t total) {
+    int pos = int(PROGRESS_BAR_WIDTH * received / total);
+
+    std::cout << "[";
+    for (int i = 0; i < PROGRESS_BAR_WIDTH; ++i) {
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << (received * 100 / total) << " %\r" << std::flush;
 }
 
 FtpSocket FtpSocket::createSocket(const std::string &serverIP, uint16_t port) {

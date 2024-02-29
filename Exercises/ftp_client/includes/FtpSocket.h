@@ -10,6 +10,9 @@
 #include "exeptions/SocketConnectionFailureException.h"
 
 constexpr static uint16_t CONTROL_RESPONSE_BUFFER_SIZE = 1024;
+constexpr static uint16_t FILE_BUFFER_SIZE = 4096;
+constexpr static uint8_t PROGRESS_BAR_UPDATE_INTERVAL_MS = 100;
+constexpr static uint8_t PROGRESS_BAR_WIDTH = 50;
 
 class FtpSocket {
 private:
@@ -17,12 +20,16 @@ private:
 
     explicit FtpSocket(SOCKET socket);
 
+    int receiveFileDataChunk(char *buffer) const;
+
+    static void displayProgress(size_t received, size_t total);
+
 public:
     ~FtpSocket();
 
     [[nodiscard]] std::string receiveResponse() const;
 
-    int receiveFileData(char *buffer) const;
+    void receiveFileData(const std::string &fileName, size_t fileSize);
 
     void sendCommand(const std::string &request) const;
 
