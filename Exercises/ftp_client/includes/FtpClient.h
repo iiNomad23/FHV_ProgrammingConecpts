@@ -12,6 +12,10 @@
 #include "FtpSocket.h"
 #include "exeptions/ParsePasvFailureException.h"
 
+constexpr static uint16_t FILE_BUFFER_SIZE = 4096;
+constexpr static uint8_t PROGRESS_BAR_UPDATE_INTERVAL_MS = 100;
+constexpr static uint8_t PROGRESS_BAR_WIDTH = 50;
+
 class FtpClient {
 private:
     FtpSocket _controlSocket;

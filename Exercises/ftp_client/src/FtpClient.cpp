@@ -123,9 +123,9 @@ void FtpClient::get(const std::string &fileName) {
 
         size_t receivedBytes = 0;
         auto lastUpdateTimeMs = std::chrono::steady_clock::now();
-        std::cout << "\033[?25l"; // hide cursor
+        std::cout << "\033[?25l" << std::endl; // hide cursor
 
-        char buffer[4096];
+        char buffer[FILE_BUFFER_SIZE];
         int bytesRead;
         while ((bytesRead = dataSocket.receiveFileData(buffer)) > 0) {
             outFile.write(buffer, bytesRead);
@@ -136,7 +136,7 @@ void FtpClient::get(const std::string &fileName) {
                     (nowMs - lastUpdateTimeMs).count();
 
             receivedBytes += bytesRead;
-            if (timeSinceLastUpdateMs > 100) {
+            if (timeSinceLastUpdateMs > PROGRESS_BAR_UPDATE_INTERVAL_MS) {
                 displayProgress(receivedBytes, fileSize);
                 lastUpdateTimeMs = nowMs;
             }
@@ -148,8 +148,7 @@ void FtpClient::get(const std::string &fileName) {
             std::cerr << "Download canceled" << std::endl;
         }
 
-        std::cout << "\033[?25h"; // show cursor
-        std::cout << std::endl;
+        std::cout << "\033[?25h" << std::endl; // show cursor
         std::cout << std::endl;
 
         outFile.close();
@@ -197,11 +196,10 @@ size_t FtpClient::getFileSize(const std::string &fileName) {
 }
 
 void FtpClient::displayProgress(size_t received, size_t total) {
-    const int barWidth = 50;
-    int pos = int(barWidth * received / total);
+    int pos = int(PROGRESS_BAR_WIDTH * received / total);
 
     std::cout << "[";
-    for (int i = 0; i < barWidth; ++i) {
+    for (int i = 0; i < PROGRESS_BAR_WIDTH; ++i) {
         if (i < pos) std::cout << "=";
         else if (i == pos) std::cout << ">";
         else std::cout << " ";

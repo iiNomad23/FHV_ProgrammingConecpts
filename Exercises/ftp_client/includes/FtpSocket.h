@@ -9,13 +9,15 @@
 #include <cstdint>
 #include "exeptions/SocketConnectionFailureException.h"
 
+constexpr static uint16_t CONTROL_RESPONSE_BUFFER_SIZE = 1024;
+
 class FtpSocket {
 private:
     SOCKET _socket;
 
-public:
     explicit FtpSocket(SOCKET socket);
 
+public:
     ~FtpSocket();
 
     [[nodiscard]] std::string receiveResponse() const;

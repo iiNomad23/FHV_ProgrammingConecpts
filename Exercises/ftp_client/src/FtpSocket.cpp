@@ -18,7 +18,7 @@ FtpSocket::~FtpSocket() {
 }
 
 std::string FtpSocket::receiveResponse() const {
-    char buffer[1024] = {};
+    char buffer[CONTROL_RESPONSE_BUFFER_SIZE] = {};
 
     int bytesReceived = recv(_socket, buffer, sizeof(buffer), 0);
     if (bytesReceived == SOCKET_ERROR) {

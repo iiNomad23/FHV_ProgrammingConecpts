@@ -7,7 +7,7 @@
 #include "includes/exeptions/LoginFailureException.h"
 
 void waitForEnter() {
-    std::cout << "Press Enter to continue..." << std::endl;
+    std::cout << "Press Enter to exit..." << std::endl;
     std::string line;
     std::getline(std::cin, line);
 }
@@ -99,6 +99,7 @@ int main() {
         ftpClient.close();
     } catch (const std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
+        waitForEnter();
     }
 
     return 0;
