@@ -1,2 +1,2 @@
 # FHV_ProgrammingConecpts
-Concepts different programming languages
+Concepts of C and C++
