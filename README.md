@@ -1,2 +1,5 @@
 # FHV_ProgrammingConecpts
-Concepts of C and C++
+### Exercises 
+Basic concepts of C and C++
+### FTP Client
+Project implementing an FTP client in C++
